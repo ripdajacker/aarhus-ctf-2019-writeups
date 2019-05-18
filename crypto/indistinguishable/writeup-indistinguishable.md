@@ -4,16 +4,16 @@ In this flag we were given the task to determine if a bunch of text has been enc
 
 ## The challenge 
 
-We are given access to a server and the source code for said server. The server produces 32 lines of text and asks if it is AES or RC4. Each line is encrypted with a random key and for each line the plaintext is 16 bytes long containing only zeroes. You then type `aes` or `rc4` to the server and it responds with `Correct!` or `Wrong`. You can ask the server for 32 more lines by typing `more`. Guessing randomly will not help us since the probability of success for guessing 42 successive rounds correctly is: $\frac{1}{2^{42}} \approx \frac{1}{4.4 \cdot 10^{12}} \approx 0.00000000000023$. Given our time constraints and guessing over the network: zero.
+We are given access to a server and the source code for said server. The server produces 32 lines of text and asks if it is AES or RC4. Each line is encrypted with a random key and for each line the plaintext is 16 bytes long containing only zeroes. You then type `aes` or `rc4` to the server and it responds with `Correct!` or `Wrong`. You can ask the server for 32 more lines by typing `more`. Guessing randomly will not help us since the probability of success for guessing 42 successive rounds correctly is: `1/(2^42) = 4.4 * 10^(-12)` which is approximately `0.00000000000023`. Given our time constraints and the fact that we are guessing over the network, this might as well be zero.
 
 ## The cryptography
 
-AES is a very good cipher that produces ciphertexts that look VERY much like random, uniform data. The best attacks against AES[^aes] require a lot of ciphertext and have time complexities in the order of ~$2^{40}$. We do not have a lot of ciphertext (only 16 byte per key) and not a enough time for brute force. 
+AES is a very good cipher that produces ciphertexts that look VERY much like random, uniform data. The best attacks against [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) require a lot of ciphertext and have time complexities in the order of approximately `2^40`. We do not have a lot of ciphertext (only 16 byte per key) and not a enough time for brute force. 
 
 RC4 on the other hand has some flaws. It works by taking your key as input and creating a keystream. The keystream is XORed with the plaintext and you have your ciphertext. Decrypting is simple, you just encrypt the ciphertext and due to XOR magic you have your original plaintext! 
 
 There are a couple of known attacks that work against RC4, but most of them require lots of ciphertext. Since the plaintext is only zeroes the cipher actually leaks it's internal state, but since the ciphertexts are only 16 bytes there's not enough data to derive anything of value.
-In 2001 Shamir showed that the second output byte of the cipher is biased towards zero with a probability of 1/128 instead of 1/256.[^rc4]  The second byte of the output has double the probability of being zero than any other byte. If we observe 256 lines  there will, on average, be 1 occurrence of 0 when it's AES and 2 occurrences when it's RC4. Now we're talking! How much data do we *actually* need to observe before we can be certain? Let's run some tests and find out.
+In [2001 Shamir showed](https://en.wikipedia.org/wiki/RC4) that the second output byte of the cipher is biased towards zero with a probability of 1/128 instead of 1/256.  The second byte of the output has double the probability of being zero than any other byte. If we observe 256 lines  there will, on average, be 1 occurrence of 0 when it's AES and 2 occurrences when it's RC4. Now we're talking! How much data do we *actually* need to observe before we can be certain? Let's run some tests and find out.
 
 ## Distinguishing RC4 with Python
 
@@ -223,11 +223,7 @@ If all goes well and the 41st round was correct, we print the last line containi
 
 ## Conclusion
 
-This challenge demonstrates just how even the smallest leak of information from a cipher can lead to an attacker gaining an advantage. RC4 is a little dated but was  used in something as common as the WiFi security protocol WEP and ultimately led to WEP being a security swiss cheese. Crypto is very hard to get right and the takeaway here is: Use AES :()
+This challenge demonstrates just how even the smallest leak of information from a cipher can lead to an attacker gaining an advantage. RC4 is a little dated but was  used in something as common as the WiFi security protocol WEP and ultimately led to WEP being a security swiss cheese. Crypto is very hard to get right and the takeaway here is: Use AES :)
 
 ---
 *Writeup by Jesenko Mehmedbašić*
-
-
-[^aes]: https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
-[^rc4]: https://en.wikipedia.org/wiki/RC4
